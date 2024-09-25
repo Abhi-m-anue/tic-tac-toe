@@ -1,10 +1,8 @@
 import Board from "@/components/Board";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -132,12 +130,13 @@ const Game = () => {
 
   return (
     <>
-      <Card className="w-80 mx-auto border-none shadow-none dark">
+      <Card className="w-80 mx-auto border-none shadow-none dark pb-5">
         <CardHeader>
-          <CardTitle className="text-center">Choose your icon</CardTitle>
+          <CardTitle className="text-center"></CardTitle>
         </CardHeader>
         <CardContent className="flex justify-center gap-10">
           <Button
+            className="w-36"
             variant={`${playerChoice === "x" ? "default" : "outline"}`}
             size="icon"
             onClick={() => setPlayerChoice("x")}
@@ -145,6 +144,7 @@ const Game = () => {
             <X className="h-4 w-4" />
           </Button>
           <Button
+          className="w-36"
             variant={`${playerChoice === "x" ? "outline" : "default"}`}
             size="icon"
             onClick={() => setPlayerChoice("o")}
