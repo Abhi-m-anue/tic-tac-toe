@@ -8,7 +8,7 @@ interface Props {
 const Board = ({ board, handleGame }: Props) => {
   return (
     <>
-      <div className="grid grid-rows-3 grid-cols-3 w-80 mx-auto text-white">
+      <div className="grid grid-rows-3 grid-cols-3 w-80 mx-auto text-white hover:cursor-pointer">
         {/* {board.map((cell: string,index : number) => {
           return (
             <div className="flex items-center justify-center border h-28" onClick={()=>{handleGame(index)}} key={index}>

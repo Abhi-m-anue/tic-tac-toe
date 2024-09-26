@@ -1,26 +1,23 @@
 import Board from "@/components/Board";
-import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Circle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Game = () => {
   const [board, setBoard] = useState<string[]>(Array(9).fill("null"));
   const [playerChoice, setPlayerChoice] = useState<string>("x");
+  const [userPlayed, setUserPlayed] = useState<boolean>(false);
+  const [comPlayed, setComPlayed] = useState<boolean>(false);
   const [isGameWon, setIsGameWon] = useState<boolean>(false);
   const [isDraw, setIsDraw] = useState<boolean>(false);
-  const [winner,setWinner] = useState<string>("")
+  const [winner, setWinner] = useState<string>("");
 
   const handleGame = (index: number) => {
     // if game is already won/tied reset the board and start a new game
     if (isGameWon || isDraw) {
-      setIsGameWon((prev) => prev&&false);
-      setIsDraw((prev) => prev&&false);
+      setIsGameWon(false);
+      setIsDraw(false);
       setBoard(() => {
         const newBoard = Array(9).fill("null");
         return newBoard;
@@ -32,67 +29,41 @@ const Game = () => {
       return;
     }
 
-    // By default, changes to a state variable is not instantly reflected (react re-renders only after the function
-    // call is finished) and hence, after the user-move our comPlay function will use the board which was in
-    // previous state, and not updated board. to fix this use
+    const newBoard = [...board];
+    newBoard[index] = playerChoice;
+    setBoard(newBoard);
 
-    // This is a functional form of setState, which ensures that this updated board will be used for further setState calls
-    setBoard((prevBoard) => {
-      const newBoard = [...prevBoard];
-      newBoard[index] = playerChoice;
-      return newBoard;
-    });
-
-    // AI play
-    comPlay();
+    setUserPlayed(true);
   };
 
   const comPlay = () => {
-    // All operations should be done inside the functional form of setState to ensure that updated board is used to
-    // find the empty spots
+    // find empty indexes where computer can play
+    const emptySpots = board
+      .map((val, idx) => (val === "null" ? idx : null))
+      .filter((val) => val !== null);
+    // choose a random such index
+    const randomIndex =
+      emptySpots[Math.floor(Math.random() * emptySpots.length)];
 
-    setBoard((prevBoard) => {
-      // check if user won game in previous move
-      if (winCheck(prevBoard)) {
-        setIsGameWon(true);
-        return prevBoard;
-      }
-      // creates a list of indexes where AI can create a move
-      const emptySpots = prevBoard
-        .map((val, idx) => (val === "null" ? idx : null))
-        .filter((val) => val !== null);
+    const newBoard = [...board];
+    newBoard[randomIndex] = playerChoice === "x" ? "o" : "x";
+    setBoard(newBoard);
 
-      // check if previous move made the game draw
-      if (emptySpots.length === 0) {
-        setIsDraw(true);
-        return prevBoard;
-      }
-
-      // choose a random available index
-      const randomIndex =
-        emptySpots[Math.floor(Math.random() * emptySpots.length)];
-
-      const newBoard = [...prevBoard];
-      newBoard[randomIndex] = playerChoice === "x" ? "o" : "x";
-
-      // check if AI won in current move
-      if (winCheck(newBoard)) {
-        setIsGameWon(true);
-      }
-      const newEmptySpots = prevBoard
-        .map((val, idx) => (val === "null" ? idx : null))
-        .filter((val) => val !== null);
-
-      // check if current move made the game draw
-      if (newEmptySpots.length === 0) {
-        setIsDraw(true);
-      }
-
-      return newBoard;
-    });
+    setComPlayed(true);
   };
 
-  const winCheck = (newBoard: string[]) => {
+  const drawCheck = () => {
+    const EmptySpots = board
+      .map((val, idx) => (val === "null" ? idx : null))
+      .filter((val) => val !== null);
+
+    if (EmptySpots.length === 0) {
+      return true;
+    }
+    return false;
+  };
+
+  const winCheck = () => {
     const winLines = [
       [0, 1, 2],
       [3, 4, 5],
@@ -106,15 +77,14 @@ const Game = () => {
     for (let i = 0; i < winLines.length; i++) {
       const [a, b, c] = winLines[i];
       if (
-        newBoard[a] !== "null" &&
-        newBoard[a] === newBoard[b] &&
-        newBoard[a] === newBoard[c]
+        board[a] !== "null" &&
+        board[a] === board[b] &&
+        board[a] === board[c]
       ) {
-        if(newBoard[a] === playerChoice){
-            setWinner("User")
-        }
-        else{
-            setWinner("Computer")
+        if (board[a] === playerChoice) {
+          setWinner("User");
+        } else {
+          setWinner("Computer");
         }
         return true;
       }
@@ -127,6 +97,30 @@ const Game = () => {
     setIsDraw(false);
     setBoard(Array(9).fill("null"));
   };
+
+  useEffect(() => {
+    // Triggers when user completes his move
+    if (userPlayed) {
+      if (winCheck()) {
+        setIsGameWon(true);
+      } else if (drawCheck()) {
+        setIsDraw(true);
+      } else {
+        comPlay();
+      }
+
+      setUserPlayed(false);
+    }
+    // Triggers when computer completes its move
+    if (comPlayed) {
+      if (winCheck()) {
+        setIsGameWon(true);
+      } else if (drawCheck()) {
+        setIsDraw(true);
+      }
+      setComPlayed(false);
+    }
+  }, [userPlayed, comPlayed]);
 
   return (
     <>
@@ -144,7 +138,7 @@ const Game = () => {
             <X className="h-4 w-4" />
           </Button>
           <Button
-          className="w-36"
+            className="w-36"
             variant={`${playerChoice === "x" ? "outline" : "default"}`}
             size="icon"
             onClick={() => setPlayerChoice("o")}
@@ -157,8 +151,13 @@ const Game = () => {
       <Board board={board} handleGame={handleGame} />
 
       <div className="text-white pt-5 text-center">
-      {isGameWon && `winner is ${winner}`}
-      {(isGameWon || isDraw) && <div className="text-2xl" onClick={resetGame}>Restart game</div>}
+        {isGameWon && `winner is ${winner}`}
+        {isDraw && `Game tied`}
+        {(isGameWon || isDraw) && (
+          <div className="text-2xl" onClick={resetGame}>
+            Restart game
+          </div>
+        )}
       </div>
     </>
   );
