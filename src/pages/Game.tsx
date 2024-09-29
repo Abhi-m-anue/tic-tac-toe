@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 
 const Game = () => {
   const [board, setBoard] = useState<string[]>(Array(9).fill("null"));
+  const [gameStarted,setGameStarted] = useState<boolean>(false);
   const [playerChoice, setPlayerChoice] = useState<string>("x");
   const [userPlayed, setUserPlayed] = useState<boolean>(false);
   const [comPlayed, setComPlayed] = useState<boolean>(false);
@@ -14,6 +15,9 @@ const Game = () => {
   const [winner, setWinner] = useState<string>("");
 
   const handleGame = (index: number) => {
+    if(!gameStarted){
+      setGameStarted(true);
+    }
     // if game is already won/tied reset the board and start a new game
     if (isGameWon || isDraw) {
       setIsGameWon(false);
@@ -22,6 +26,7 @@ const Game = () => {
         const newBoard = Array(9).fill("null");
         return newBoard;
       });
+      setGameStarted(false)
     }
 
     // clicked on an already marked cell
@@ -96,6 +101,7 @@ const Game = () => {
     setIsGameWon(false);
     setIsDraw(false);
     setBoard(Array(9).fill("null"));
+    setGameStarted(false)
   };
 
   useEffect(() => {
@@ -124,7 +130,7 @@ const Game = () => {
 
   return (
     <>
-      <Card className="w-80 mx-auto border-none shadow-none dark pb-5">
+      <Card className={gameStarted ? "w-80 mx-auto border-none shadow-none dark pb-5 invisible":"w-80 mx-auto border-none shadow-none dark pb-5"}>
         <CardHeader>
           <CardTitle className="text-center"></CardTitle>
         </CardHeader>
@@ -151,12 +157,12 @@ const Game = () => {
       <Board board={board} handleGame={handleGame} />
 
       <div className="text-white pt-5 text-center">
-        {isGameWon && `winner is ${winner}`}
+        {isGameWon && `${winner} won!!`}
         {isDraw && `Game tied`}
         {(isGameWon || isDraw) && (
-          <div className="text-2xl" onClick={resetGame}>
-            Restart game
-          </div>
+          <Button variant="link" className="text-lg inline text-white" onClick={resetGame}>
+            Restart ?
+          </Button>
         )}
       </div>
     </>
