@@ -5,13 +5,17 @@ interface myContextType{
     setIsPlayerHost : React.Dispatch<React.SetStateAction<boolean>>;
     roomCode : string;
     setRoomCode : React.Dispatch<React.SetStateAction<string>>;
+    opponentName : string;
+    setOpponentName : React.Dispatch<React.SetStateAction<string>>;
 }
 
 const initialState = {
     isPlayerHost : false,
     setIsPlayerHost : ()=>{},
     roomCode : '',
-    setRoomCode : ()=>{}
+    setRoomCode : ()=>{},
+    opponentName : '',
+    setOpponentName : ()=>{}
 }
 
 const GameContext = createContext<myContextType>(initialState)

@@ -5,16 +5,26 @@ import socket from "@/api/socket";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Circle, X } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
+import { useNavigate } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { Label } from "@radix-ui/react-label";
 
 const OnlineGame = () => {
   const [board, setBoard] = useState<string[]>(Array(9).fill("null"));
-  const { isPlayerHost, roomCode} = useContext(GameContext);
+  const { isPlayerHost, roomCode, opponentName} = useContext(GameContext);
 
   const [playerChoice,setPlayerChoice] = useState<string>("")
   const [isPlayerTurn, setIsPlayerTurn] = useState<boolean>(false)
   const [opponentWon,setOpponentWon] = useState<boolean>(false);
   const [playerWon,setPlayerWon] = useState<boolean>(false)
   const [isDraw,setIsDraw] = useState<boolean>(false)
+
+  const [chat,setChat] = useState<string>("")
+
+  const { toast } = useToast()
+  const navigate = useNavigate()
 
   const handleGame = (index: number) => {
     if(!isPlayerTurn || opponentWon || playerWon || isDraw){
@@ -34,6 +44,19 @@ const OnlineGame = () => {
       socket.emit('gameTied',roomCode)
     }
   };
+  
+  const handleChat = ()=>{
+    if(!chat){
+      return
+    }
+    socket.emit('chat',chat,roomCode)
+    toast({
+      title: `You`,
+      description: `${chat}`,
+      duration : 4000
+    })
+    setChat("")
+  }
 
   socket.on('playerMoved',({index})=>{
     let newBoard;
@@ -57,6 +80,26 @@ const OnlineGame = () => {
 
   socket.on('gameTied', ()=>{
     setIsDraw(true)
+  })
+
+  socket.on('chat',(msg)=>{
+    console.log(msg)
+    toast({
+      title: `${opponentName}`,
+      description: `${msg}`,
+      duration : 4000
+    })
+  })
+
+  socket.on('opponentLeft',()=>{
+    toast({
+      title: `${opponentName} disconnected`,
+      description: "Redirecting to game lobby",
+      duration : 4000
+    })
+    setTimeout(()=>{
+      navigate('/online-lobby')
+    },4000)
   })
   useEffect(()=>{
     if(isPlayerHost){
@@ -128,15 +171,15 @@ const OnlineGame = () => {
             className="w-40"
             variant={`${isPlayerTurn ? "default":"outline"}`}
             
-          ><p className="mr-3">Your turn</p>
-            {playerChoice === "o" ? <Circle className="h-4 w-4" /> : <X className="h-4 w-4" />}
+          ><p className="mr-3">You</p>
+            {/* {playerChoice === "o" ? <Circle className="h-4 w-4" /> : <X className="h-4 w-4" />} */}
           </Button>
           <Button
             className="w-40"
             variant={`${isPlayerTurn ? "outline":"default"}`}
             
-          ><p className="mr-3">Opponent turn</p>
-            {playerChoice === "x" ? <Circle className="h-4 w-4" /> : <X className="h-4 w-4" />}
+          ><p className="mr-3">Opponent</p>
+            {/* {playerChoice === "x" ? <Circle className="h-4 w-4" /> : <X className="h-4 w-4" />} */}
           </Button>
         </CardContent>
       </Card>
@@ -151,6 +194,18 @@ const OnlineGame = () => {
           </Button>
         )}
       </div>
+      {/* <p>{opponentName}</p> */}
+    <Toaster></Toaster>
+    <div className="flex justify-center items-center gap-5">
+    
+                    <Input
+                      id="name"
+                      placeholder="Type something"
+                      className="sm:w-[20%] w-[50%] text-black"
+                      onChange={(e) => setChat(e.target.value)}
+                    />
+                    <Button onClick={handleChat}>Send</Button>
+    </div>
     </>
   );
 };

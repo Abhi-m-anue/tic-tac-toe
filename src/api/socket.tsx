@@ -2,24 +2,24 @@ import { io, Socket } from "socket.io-client";
 
 interface ServerToClientEvents {
     cantJoinRoom : (data : string)=> void;
-    joinedRoom : ()=> void;
+    joinedRoom : (name : string)=> void;
     newRoomCreated : (data : {gameId : string}) => void;
-    beginGame : ()=> void;
+    beginGame : (name : string)=> void;
     playerMoved : (data : { index : number}) => void;
     opponentWon : () => void;
-    gameTied : ()=> void
-    // noArg: () => void;
-    // basicEmit: (a: number, b: string, c: Buffer) => void;
+    gameTied : ()=> void;
+    opponentLeft : ()=> void;
+    chat : (msg : string,roomCode:string) => void;
     // withAck: (d: string, callback: (e: number) => void) => void;
   }
   
   interface ClientToServerEvents {
     joinRoom: ({ roomId, name }: { roomId: string; name: string }) => void;
-    createNewRoom : ()=> void;
+    createNewRoom : (name :string)=> void;
     playerMoved : (index : number,roomCode:string) => void;
     playerWon :(roomCode : string)=> void;
     gameTied : (roomCode : string)=> void;
-    // hello: () => void;
+    chat : (msg : string,roomCode:string) => void;
   }
   
 

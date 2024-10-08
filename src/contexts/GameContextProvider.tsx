@@ -7,8 +7,9 @@ interface Props {
 const GameContextProvider = (props: Props) => {
   const [isPlayerHost, setIsPlayerHost] = useState<boolean>(false);
   const [roomCode,setRoomCode] = useState<string>('')
+  const [opponentName, setOpponentName] = useState<string>('')
   return (
-    <GameContext.Provider value={{ isPlayerHost, setIsPlayerHost, roomCode, setRoomCode}}>
+    <GameContext.Provider value={{ isPlayerHost, setIsPlayerHost, roomCode, setRoomCode, opponentName, setOpponentName}}>
       {props.children}
     </GameContext.Provider>
   );

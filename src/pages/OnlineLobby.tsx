@@ -28,11 +28,10 @@ const OnlineLobby = () => {
   const [codeError, setCodeError] = useState<string>("");
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
   const [joinDialogOpen, setJoinDialogOpen] = useState<boolean>(false);
-  // const [isUserHost, setIsUserHost] = useState<boolean>(false);
-
+  
   const navigate = useNavigate();
 
-  const { setIsPlayerHost,roomCode, setRoomCode} = useContext(GameContext);
+  const { setIsPlayerHost,isPlayerHost,roomCode, setRoomCode, setOpponentName} = useContext(GameContext);
 
   const handleCreate = () => {
     if (!name) {
@@ -44,7 +43,7 @@ const OnlineLobby = () => {
     setNameError(false);
     setCreateDialogOpen(false);
     setIsPlayerHost(true);
-    socket.emit("createNewRoom");
+    socket.emit("createNewRoom",name);
   };
 
   const handleJoin = () => {
@@ -77,8 +76,11 @@ const OnlineLobby = () => {
     }
   }, [joinDialogOpen, createDialogOpen]);
 
-  socket.on("joinedRoom", () => {
+  useEffect(()=>{
+    
+  socket.on("joinedRoom", (name) => {
     setRoomCode(roomId)
+    setOpponentName(name)
     setCodeError("");
     setNameError(false);
     setJoinDialogOpen(false);
@@ -94,14 +96,23 @@ const OnlineLobby = () => {
     setRoomCode(data.gameId);
   });
 
-  socket.on("beginGame", () => {
+  socket.on("beginGame", (name) => {
+    setOpponentName(name)
     navigate("/online-game");
   });
+  return () => {
+    socket.off("joinedRoom");
+    socket.off("cantJoinRoom");
+    socket.off("newRoomCreated");
+    socket.off("beginGame");
+  };
+  })
+
 
   return (
     <>
       <div className="flex flex-col items-center justify-center h-5/6 gap-5 w-4/5 mx-auto">
-        {!roomCode && (
+        {!isPlayerHost && (
           <>
             <Dialog open={joinDialogOpen} onOpenChange={setJoinDialogOpen}>
               <DialogTrigger asChild>
@@ -203,8 +214,8 @@ const OnlineLobby = () => {
             </Dialog>
           </>
         )}
-        {roomCode && (
-          <div className="text-center">
+        {isPlayerHost && (
+          <div className="text-center text-white">
             <p className="text-4xl mb-9">Your Room Code</p>
             <p className="text-6xl font-bold tracking-widest mb-10 border p-5 rounded-3xl">
               {roomCode}
