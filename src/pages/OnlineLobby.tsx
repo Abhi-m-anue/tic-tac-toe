@@ -1,6 +1,4 @@
-import {
-  useNavigate,
-} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -17,9 +15,8 @@ import { Label } from "@/components/ui/label";
 import { useContext, useEffect, useState } from "react";
 
 import socket from "../api/socket.tsx";
-import GameContext from '../contexts/GameContext.tsx';
+import GameContext from "../contexts/GameContext.tsx";
 import { DialogDescription } from "@radix-ui/react-dialog";
-
 
 const OnlineLobby = () => {
   const [name, setName] = useState<string>("");
@@ -28,10 +25,16 @@ const OnlineLobby = () => {
   const [codeError, setCodeError] = useState<string>("");
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
   const [joinDialogOpen, setJoinDialogOpen] = useState<boolean>(false);
-  
+
   const navigate = useNavigate();
 
-  const { setIsPlayerHost,isPlayerHost,roomCode, setRoomCode, setOpponentName} = useContext(GameContext);
+  const {
+    setIsPlayerHost,
+    isPlayerHost,
+    roomCode,
+    setRoomCode,
+    setOpponentName,
+  } = useContext(GameContext);
 
   const handleCreate = () => {
     if (!name) {
@@ -43,7 +46,7 @@ const OnlineLobby = () => {
     setNameError(false);
     setCreateDialogOpen(false);
     setIsPlayerHost(true);
-    socket.emit("createNewRoom",name);
+    socket.emit("createNewRoom", name);
   };
 
   const handleJoin = () => {
@@ -76,38 +79,36 @@ const OnlineLobby = () => {
     }
   }, [joinDialogOpen, createDialogOpen]);
 
-  useEffect(()=>{
-    
-  socket.on("joinedRoom", (name) => {
-    setRoomCode(roomId)
-    setOpponentName(name)
-    setCodeError("");
-    setNameError(false);
-    setJoinDialogOpen(false);
-    setIsPlayerHost(false);
-    navigate("/online-game");
-  });
+  useEffect(() => {
+    socket.on("joinedRoom", (name) => {
+      setRoomCode(roomId);
+      setOpponentName(name);
+      setCodeError("");
+      setNameError(false);
+      setJoinDialogOpen(false);
+      setIsPlayerHost(false);
+      navigate("/online-game");
+    });
 
-  socket.on("cantJoinRoom", (data) => {
-    setCodeError(data);
-  });
+    socket.on("cantJoinRoom", (data) => {
+      setCodeError(data);
+    });
 
-  socket.on("newRoomCreated", (data) => {
-    setRoomCode(data.gameId);
-  });
+    socket.on("newRoomCreated", (data) => {
+      setRoomCode(data.gameId);
+    });
 
-  socket.on("beginGame", (name) => {
-    setOpponentName(name)
-    navigate("/online-game");
+    socket.on("beginGame", (name) => {
+      setOpponentName(name);
+      navigate("/online-game");
+    });
+    return () => {
+      socket.off("joinedRoom");
+      socket.off("cantJoinRoom");
+      socket.off("newRoomCreated");
+      socket.off("beginGame");
+    };
   });
-  return () => {
-    socket.off("joinedRoom");
-    socket.off("cantJoinRoom");
-    socket.off("newRoomCreated");
-    socket.off("beginGame");
-  };
-  })
-
 
   return (
     <>
@@ -123,7 +124,9 @@ const OnlineLobby = () => {
               <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                   <DialogTitle>Join Room</DialogTitle>
-                  <DialogDescription className="text-sm text-slate-500">Enter the room code shared by the room creator</DialogDescription>
+                  <DialogDescription className="text-sm text-slate-500">
+                    Enter the room code shared by the room creator
+                  </DialogDescription>
                 </DialogHeader>
                 <div id="dialog-description" className="grid gap-4 py-4">
                   <div className="grid grid-cols-4 items-center gap-4">
@@ -147,9 +150,7 @@ const OnlineLobby = () => {
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4 mt-2">
                     <Label>Room code</Label>
-                    <Input
-                      onChange={(e) => setRoomId(e.target.value)}
-                    ></Input>
+                    <Input onChange={(e) => setRoomId(e.target.value)}></Input>
                     {codeError && (
                       <Alert
                         variant="destructive"
@@ -182,7 +183,9 @@ const OnlineLobby = () => {
               <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                   <DialogTitle>Create Room</DialogTitle>
-                  <DialogDescription className="text-sm text-slate-500">Create a room and share the code with your friend</DialogDescription>
+                  <DialogDescription className="text-sm text-slate-500">
+                    Create a room and share the code with your friend
+                  </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-4 items-center gap-4">

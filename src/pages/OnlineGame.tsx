@@ -1,118 +1,112 @@
 import Board from "@/components/Board";
-import GameContext from '../contexts/GameContext';
+import GameContext from "../contexts/GameContext";
 import { useContext, useEffect, useState } from "react";
 import socket from "@/api/socket";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Circle, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
-import { Label } from "@radix-ui/react-label";
 
 const OnlineGame = () => {
   const [board, setBoard] = useState<string[]>(Array(9).fill("null"));
-  const { isPlayerHost, roomCode, opponentName} = useContext(GameContext);
+  const { isPlayerHost, roomCode, opponentName } = useContext(GameContext);
 
-  const [playerChoice,setPlayerChoice] = useState<string>("")
-  const [isPlayerTurn, setIsPlayerTurn] = useState<boolean>(false)
-  const [opponentWon,setOpponentWon] = useState<boolean>(false);
-  const [playerWon,setPlayerWon] = useState<boolean>(false)
-  const [isDraw,setIsDraw] = useState<boolean>(false)
+  const [playerChoice, setPlayerChoice] = useState<string>("");
+  const [isPlayerTurn, setIsPlayerTurn] = useState<boolean>(false);
+  const [opponentWon, setOpponentWon] = useState<boolean>(false);
+  const [playerWon, setPlayerWon] = useState<boolean>(false);
+  const [isDraw, setIsDraw] = useState<boolean>(false);
 
-  const [chat,setChat] = useState<string>("")
+  const [chat, setChat] = useState<string>("");
 
-  const { toast } = useToast()
-  const navigate = useNavigate()
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleGame = (index: number) => {
-    if(!isPlayerTurn || opponentWon || playerWon || isDraw){
-        return;
+    if (!isPlayerTurn || opponentWon || playerWon || isDraw) {
+      return;
     }
-    const newBoard = [...board]
+    const newBoard = [...board];
     newBoard[index] = playerChoice;
-    setBoard(newBoard)
-    setIsPlayerTurn(false)
-    socket.emit('playerMoved',index,roomCode)
-    if(winCheck(newBoard)){
-      setPlayerWon(true)
-      socket.emit('playerWon',roomCode)
-    }
-    else if(drawCheck(newBoard)){
-      setIsDraw(true)
-      socket.emit('gameTied',roomCode)
+    setBoard(newBoard);
+    setIsPlayerTurn(false);
+    socket.emit("playerMoved", index, roomCode);
+    if (winCheck(newBoard)) {
+      setPlayerWon(true);
+      socket.emit("playerWon", roomCode);
+    } else if (drawCheck(newBoard)) {
+      setIsDraw(true);
+      socket.emit("gameTied", roomCode);
     }
   };
-  
-  const handleChat = ()=>{
-    if(!chat){
-      return
+
+  const handleChat = () => {
+    if (!chat) {
+      return;
     }
-    socket.emit('chat',chat,roomCode)
+    socket.emit("chat", chat, roomCode);
     toast({
       title: `You`,
       description: `${chat}`,
-      duration : 4000
-    })
-    setChat("")
-  }
+      duration: 4000,
+    });
+    setChat("");
+  };
 
-  socket.on('playerMoved',({index})=>{
+  socket.on("playerMoved", ({ index }) => {
     let newBoard;
-    if(playerWon || opponentWon || isDraw){
+    if (playerWon || opponentWon || isDraw) {
       newBoard = Array(9).fill("null");
-      setIsDraw(false)
-    setPlayerWon(false)
-    setOpponentWon(false)
+      setIsDraw(false);
+      setPlayerWon(false);
+      setOpponentWon(false);
+    } else {
+      newBoard = [...board];
     }
-    else{
-      newBoard = [...board]
-    }
-    newBoard[index] = playerChoice === 'x' ? 'o' : 'x';
-    setBoard(newBoard)
-    setIsPlayerTurn(true)
-  })
+    newBoard[index] = playerChoice === "x" ? "o" : "x";
+    setBoard(newBoard);
+    setIsPlayerTurn(true);
+  });
 
-  socket.on('opponentWon',()=>{
-    setOpponentWon(true)
-  })
+  socket.on("opponentWon", () => {
+    setOpponentWon(true);
+  });
 
-  socket.on('gameTied', ()=>{
-    setIsDraw(true)
-  })
+  socket.on("gameTied", () => {
+    setIsDraw(true);
+  });
 
-  socket.on('chat',(msg)=>{
-    console.log(msg)
+  socket.on("chat", (msg) => {
+    console.log(msg);
     toast({
       title: `${opponentName}`,
       description: `${msg}`,
-      duration : 4000
-    })
-  })
+      duration: 4000,
+    });
+  });
 
-  socket.on('opponentLeft',()=>{
+  socket.on("opponentLeft", () => {
     toast({
       title: `${opponentName} disconnected`,
       description: "Redirecting to game lobby",
-      duration : 4000
-    })
-    setTimeout(()=>{
-      navigate('/online-lobby')
-    },4000)
-  })
-  useEffect(()=>{
-    if(isPlayerHost){
-        setIsPlayerTurn(true)
-        setPlayerChoice('x');
+      duration: 4000,
+    });
+    setTimeout(() => {
+      navigate("/online-lobby");
+    }, 4000);
+  });
+  useEffect(() => {
+    if (isPlayerHost) {
+      setIsPlayerTurn(true);
+      setPlayerChoice("x");
+    } else {
+      setPlayerChoice("o");
     }
-    else{
-        setPlayerChoice('o')
-    }
-  },[])
+  }, []);
 
-
-  const drawCheck = (newBoard : string[]) => {
+  const drawCheck = (newBoard: string[]) => {
     const EmptySpots = newBoard
       .map((val, idx) => (val === "null" ? idx : null))
       .filter((val) => val !== null);
@@ -123,7 +117,7 @@ const OnlineGame = () => {
     return false;
   };
 
-  const winCheck = (newBoard : string[]) => {
+  const winCheck = (newBoard: string[]) => {
     const winLines = [
       [0, 1, 2],
       [3, 4, 5],
@@ -147,38 +141,37 @@ const OnlineGame = () => {
     return false;
   };
 
-  const resetGame = ()=>{
+  const resetGame = () => {
     setBoard(Array(9).fill("null"));
-    setIsDraw(false)
-    setPlayerWon(false)
-    setOpponentWon(false)
+    setIsDraw(false);
+    setPlayerWon(false);
+    setOpponentWon(false);
 
-    if(isPlayerHost){
-      setIsPlayerTurn(true)
-  }
-  else{
-      setIsPlayerTurn(false)
-  }
-  }
+    if (isPlayerHost) {
+      setIsPlayerTurn(true);
+    } else {
+      setIsPlayerTurn(false);
+    }
+  };
   return (
     <>
-      <Card className= "w-80 mx-auto border-none shadow-none dark pb-5">
+      <Card className="w-80 mx-auto border-none shadow-none dark pb-5">
         <CardHeader>
           <CardTitle className="text-center"></CardTitle>
         </CardHeader>
         <CardContent className="flex justify-center gap-10">
           <Button
             className="w-40"
-            variant={`${isPlayerTurn ? "default":"outline"}`}
-            
-          ><p className="mr-3">You</p>
+            variant={`${isPlayerTurn ? "default" : "outline"}`}
+          >
+            <p className="mr-3">You</p>
             {/* {playerChoice === "o" ? <Circle className="h-4 w-4" /> : <X className="h-4 w-4" />} */}
           </Button>
           <Button
             className="w-40"
-            variant={`${isPlayerTurn ? "outline":"default"}`}
-            
-          ><p className="mr-3">Opponent</p>
+            variant={`${isPlayerTurn ? "outline" : "default"}`}
+          >
+            <p className="mr-3">Opponent</p>
             {/* {playerChoice === "x" ? <Circle className="h-4 w-4" /> : <X className="h-4 w-4" />} */}
           </Button>
         </CardContent>
@@ -189,23 +182,26 @@ const OnlineGame = () => {
         {playerWon && `You won!!`}
         {isDraw && `Game tied`}
         {(playerWon || opponentWon || isDraw) && (
-          <Button variant="link" className="text-lg inline text-white" onClick={resetGame}>
+          <Button
+            variant="link"
+            className="text-lg inline text-white"
+            onClick={resetGame}
+          >
             Restart ?
           </Button>
         )}
       </div>
       {/* <p>{opponentName}</p> */}
-    <Toaster></Toaster>
-    <div className="flex justify-center items-center gap-5">
-    
-                    <Input
-                      id="name"
-                      placeholder="Type something"
-                      className="sm:w-[20%] w-[50%] text-black"
-                      onChange={(e) => setChat(e.target.value)}
-                    />
-                    <Button onClick={handleChat}>Send</Button>
-    </div>
+      <Toaster></Toaster>
+      <div className="flex justify-center items-center gap-5">
+        <Input
+          id="name"
+          placeholder="Type something"
+          className="sm:w-[20%] w-[50%] text-black"
+          onChange={(e) => setChat(e.target.value)}
+        />
+        <Button onClick={handleChat}>Send</Button>
+      </div>
     </>
   );
 };
