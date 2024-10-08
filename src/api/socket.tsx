@@ -23,6 +23,6 @@ interface ServerToClientEvents {
   }
   
 
-const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io('http://localhost:3000');
+const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io('https://tic-tac-toe-iewq.onrender.com');
 
 export default socket
