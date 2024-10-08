@@ -4,9 +4,11 @@ body,html {
   box-sizing: border-box;
   background-color: #0a0a0a!important;
   height: 100%;
+  overflow: hidden;
 }
 #root{
   height: 100%;
+  overflow: hidden;
 }
 
 .slide-to-right{
